@@ -1,0 +1,38 @@
+<ion-content class="login-bg">
+
+  <!-- PARTÍCULAS -->
+  <div id="particles-js"></div>
+
+  <div class="login-container fade-in">
+
+    <!-- LOGO -->
+    <div class="logo pulse">
+      <img src="assets/icon/INVENGY_AZUL.png" class="logo pulse">
+    </div>
+
+    <h1 class="title">CONTROL</h1>
+    <p class="subtitle">Sistema de Conductores</p>
+
+    <div class="card" [class.shake]="error">
+
+      <ion-input (ionInput)="error = false" label="Usuario" labelPlacement="stacked" [(ngModel)]="usuario"
+        class="input">
+      </ion-input>
+
+      <ion-input (ionInput)="error = false" type="password" label="Contraseña" labelPlacement="stacked"
+        [(ngModel)]="password" class="input">
+      </ion-input>
+
+      <ion-button expand="block" (click)="login()" class="btn-login" [disabled]="loading">
+
+        <span *ngIf="!loading">Ingresar</span>
+
+        <ion-spinner *ngIf="loading" name="crescent"></ion-spinner>
+
+      </ion-button>
+
+    </div>
+
+  </div>
+
+</ion-content>

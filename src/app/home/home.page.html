@@ -1,20 +1,54 @@
-<ion-header [translucent]="true">
-  <ion-toolbar>
-    <ion-title>
-      Blank
-    </ion-title>
+<ion-header class="ion-no-border">
+  <ion-toolbar color="primary">
+    <ion-title>Control de Ruta</ion-title>
   </ion-toolbar>
 </ion-header>
 
-<ion-content [fullscreen]="true">
-  <ion-header collapse="condense">
-    <ion-toolbar>
-      <ion-title size="large">Blank</ion-title>
-    </ion-toolbar>
-  </ion-header>
+<ion-content [fullscreen]="true" class="ion-padding">
 
-  <div id="container">
-    <strong>Ready to create an app?</strong>
-    <p>Start with Ionic <a target="_blank" rel="noopener noreferrer" href="https://ionicframework.com/docs/components">UI Components</a></p>
+  <!-- TARJETA DE UBICACIÓN -->
+  <ion-card mode="ios">
+    <ion-item lines="none">
+      <ion-icon name="pin-outline" slot="start" color="primary"></ion-icon>
+      <ion-label>
+        <h2>Ubicación Actual</h2>
+        <p *ngIf="!lat">Esperando señal GPS...</p>
+        <p *ngIf="lat" color="medium">{{lat.toFixed(4)}}, {{lng?.toFixed(4)}}</p>
+      </ion-label>
+      <ion-button slot="end" fill="clear" (click)="obtenerUbicacion()">
+        <ion-icon name="refresh-outline"></ion-icon>
+      </ion-button>
+    </ion-item>
+
+    <ion-card-content>
+      <div id="map" style="width: 100%; height: 200px; border-radius: 12px;"></div>
+    </ion-card-content>
+  </ion-card>
+
+  <!-- TARJETA DE EVIDENCIA FOTOGRÁFICA -->
+  <ion-card mode="ios">
+    <ion-card-content>
+      <div *ngIf="!foto" (click)="tomarFoto()"
+        style="width: 100%; height: 150px; border: 2px dashed #ccc; border-radius: 12px; display: flex; flex-direction: column; justify-content: center; align-items: center; background: #f9f9f9;">
+        <ion-icon name="camera-outline" style="font-size: 40px; color: #999;"></ion-icon>
+        <p style="color: #999;">Tocar para tomar foto</p>
+      </div>
+
+      <img *ngIf="foto" [src]="foto" (click)="tomarFoto()"
+        style="width: 100%; border-radius: 12px; height: 200px; object-fit: cover;" />
+    </ion-card-content>
+  </ion-card>
+
+  <!-- BOTÓN DE ENVÍO -->
+  <div class="ion-padding-top">
+    <ion-button expand="block" shape="round" [color]="enRuta ? 'warning' : 'success'" size="large"
+      [disabled]="!puedeGuardar" (click)="enviarReporte()" style="font-weight: bold; height: 60px;">
+
+      <ion-icon [name]="enRuta ? 'exit-outline' : 'cloud-upload-outline'" slot="start"></ion-icon>
+      {{ enRuta ? 'REGISTRAR SALIDA' : 'REGISTRAR INGRESO' }}
+
+    </ion-button>
+
   </div>
+
 </ion-content>

@@ -25,3 +25,40 @@
 #container a {
   text-decoration: none;
 }
+
+.titulo {
+  text-align: center;
+  font-weight: bold;
+  margin-bottom: 20px;
+}
+
+.preview {
+  width: 100%;
+  border-radius: 10px;
+  margin-top: 15px;
+}
+
+.info {
+  margin-top: 10px;
+  text-align: center;
+}
+
+ion-toolbar {
+  --background: #1a237e;
+  /* Un azul más profesional */
+  --color: white;
+}
+
+ion-card {
+  margin-bottom: 20px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  border-radius: 16px;
+}
+
+ion-button[color="success"] {
+  --box-shadow: 0 4px 10px rgba(45, 211, 111, 0.3);
+}
+
+#map {
+  background: #eee;
+}

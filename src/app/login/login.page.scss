@@ -1,0 +1,122 @@
+.login-bg {
+  --background: #0f2027;
+  position: relative;
+  overflow: hidden;
+}
+
+/* PARTICULAS */
+#particles-js {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+}
+
+/* CONTENEDOR */
+.login-container {
+  position: relative;
+  z-index: 1;
+  max-width: 350px;
+  margin: auto;
+  top: 15%;
+  text-align: center;
+}
+
+/* LOGO */
+.logo {
+  font-size: 50px;
+  margin-bottom: 10px;
+}
+
+/* TITULOS */
+.title {
+  font-size: 32px;
+  color: #00e5ff;
+  text-shadow: 0 0 15px #00e5ff;
+}
+
+.subtitle {
+  color: #ccc;
+  margin-bottom: 20px;
+}
+
+/* TARJETA */
+.card {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(15px);
+  padding: 25px;
+  border-radius: 15px;
+  box-shadow: 0 0 25px rgba(0, 229, 255, 0.2);
+}
+
+/* INPUTS */
+.input {
+  margin-bottom: 15px;
+  --background: rgba(255,255,255,0.1);
+  --color: #fff;
+  border-radius: 10px;
+
+  --padding-start: 0;
+  --padding-end: 0;
+  text-align: center;
+}
+
+.input::part(native) {
+  text-align: center;
+}
+
+/* BOTON */
+.btn-login {
+  --background: linear-gradient(90deg, #00e5ff, #00c6ff);
+  --box-shadow: 0 0 15px #00e5ff;
+  border-radius: 10px;
+}
+
+/* ANIMACIONES */
+
+/* FADE IN */
+.fade-in {
+  animation: fadeIn 1s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* LOGO PULSE */
+.pulse {
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+  100% { transform: scale(1); }
+}
+
+/* ERROR SHAKE */
+.shake {
+  animation: shake 0.4s;
+}
+
+@keyframes shake {
+  0% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  50% { transform: translateX(5px); }
+  75% { transform: translateX(-5px); }
+  100% { transform: translateX(0); }
+}
+
+.btn-login {
+  transition: all 0.3s ease;
+}
+
+.btn-login:active {
+  transform: scale(0.95);
+}
+
+.logo img {
+  width: 120px;
+  height: auto;
+}
