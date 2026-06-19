@@ -14,9 +14,11 @@ import {
   IonCardContent,
   IonIcon,
   IonLabel,
-  IonItem
+  IonItem,
+  LoadingController
 } from '@ionic/angular/standalone';
 import { CommonModule } from '@angular/common';
+import { HeaderComponent } from '../shared/components/header/header.component';
 
 declare var L: any;
 
@@ -28,14 +30,12 @@ declare var L: any;
     IonContent,
     IonButton,
     CommonModule,
-    IonHeader,
-    IonToolbar,
-    IonTitle,
     IonCard,
     IonCardContent,
     IonIcon,
     IonLabel,
-    IonItem
+    IonItem,
+    HeaderComponent
   ]
 })
 export class HomePage {
@@ -43,6 +43,8 @@ export class HomePage {
   lat: number | null = null;
   lng: number | null = null;
   foto: string | null = null;
+  foto2: string | null = null;
+  foto2Tomada = false;
   map: any;
   timeGps: number | null = null;
   timeFoto: number | null = null;
@@ -55,13 +57,23 @@ export class HomePage {
   // 🔥 control estricto
   fotoTomada = false;
 
-  constructor(private conductoresService: ConductoresService) {
+  constructor(private conductoresService: ConductoresService, private loadingCtrl: LoadingController) {
     // REGISTRAMOS LOS ICONOS
     addIcons({ pinOutline, refreshOutline, cameraOutline, cloudUploadOutline, exitOutline });
   }
   // ESTO HACE QUE BUSQUE EL GPS APENAS ABRA LA APP
   async ngOnInit() {
+    this.cargarEstadoDeRuta();
     this.obtenerUbicacion();
+  }
+
+  cargarEstadoDeRuta() {
+    const datos = localStorage.getItem('conductor');
+    if (datos) {
+      const conductor = JSON.parse(datos);
+      this.enRuta = conductor.enRuta || false;
+      this.idRegistroActual = conductor.idRegistroActual || null;
+    }
   }
 
   // 📍 UBICACIÓN
@@ -129,45 +141,98 @@ export class HomePage {
     }
   }
 
-  enviarReporte() {
-    // --- RESTAURAR VALIDACIÓN DE 45s ---
+  async tomarFoto2() {
+    try {
+      const image = await Camera.getPhoto({
+        quality: 90, // Calidad alta como pediste
+        allowEditing: false,
+        resultType: CameraResultType.DataUrl,
+        source: CameraSource.Camera
+      });
+      this.foto2 = image.dataUrl || null;
+      this.foto2Tomada = true;
+    } catch (error) {
+      console.log('Usuario canceló foto 2');
+    }
+  }
+
+
+  async enviarReporte() {
+    // 1. Validación de tiempo (45s)
     if (!this.timeFoto) return;
     const ahora = Date.now();
     const diferencia = (ahora - this.timeFoto) / 1000;
-
     if (diferencia > 45) {
-      alert('Tiempo excedido para enviar el reporte (máx 45s). Empieza de nuevo.');
+      alert('Tiempo excedido (máx 45s desde la primera foto). Empieza de nuevo.');
       this.resetearFormulario();
       return;
     }
-    // -----------------------------------
+
+    // 2. Mostrar cargador (importante para fotos pesadas)
+    const loading = await this.loadingCtrl.create({
+      message: 'Subiendo evidencia en alta calidad...',
+      spinner: 'crescent'
+    });
+    await loading.present();
 
     const conductor = JSON.parse(localStorage.getItem('conductor') || '{}');
 
+    // 3. Preparar el paquete de datos (con las 2 fotos)
     const payload = {
       conductor_id: conductor.id,
       id: this.idRegistroActual,
       foto_ingreso: this.foto,
+      foto_ingreso_2: this.foto2, // <-- Nueva
       foto_salida: this.foto,
+      foto_salida_2: this.foto2,   // <-- Nueva
       gps_ingreso: { lat: this.lat, lng: this.lng },
       gps_salida: { lat: this.lat, lng: this.lng }
     };
 
     if (!this.enRuta) {
-      this.conductoresService.registrarIngreso(payload).subscribe((res: any) => {
-        this.idRegistroActual = res.id;
-        this.enRuta = true;
-        alert('¡Ingreso registrado correctamente en la base de datos!');
-        this.resetearFormulario();
+      this.conductoresService.registrarIngreso(payload).subscribe({
+        next: (res: any) => {
+          loading.dismiss();
+          this.idRegistroActual = res.id;
+          this.enRuta = true;
+
+          // Actualizar storage
+          conductor.enRuta = true;
+          conductor.idRegistroActual = res.id;
+          localStorage.setItem('conductor', JSON.stringify(conductor));
+
+          alert('¡Ingreso registrado con éxito!');
+          this.resetearFormulario();
+        },
+        error: () => {
+          loading.dismiss();
+          alert('Error al conectar con el servidor');
+        }
       });
     } else {
-      this.conductoresService.registrarSalida(payload).subscribe(() => {
-        this.enRuta = false;
-        alert('¡Salida registrada correctamente! Feliz descanso.');
-        this.resetearFormulario();
+      this.conductoresService.registrarSalida(payload).subscribe({
+        next: () => {
+          loading.dismiss();
+          this.enRuta = false;
+          this.idRegistroActual = null;
+
+          // Actualizar storage
+          conductor.enRuta = false;
+          conductor.idRegistroActual = null;
+          localStorage.setItem('conductor', JSON.stringify(conductor));
+
+          alert('¡Salida registrada con éxito!');
+          this.resetearFormulario();
+        },
+        error: () => {
+          loading.dismiss();
+          alert('Error al conectar con el servidor');
+        }
       });
     }
   }
+
+
 
 
   // Crea esta función auxiliar para no repetir código de limpieza
@@ -178,6 +243,8 @@ export class HomePage {
     this.timeGps = null;
     this.timeFoto = null;
     this.fotoTomada = false;
+    this.foto2 = null;
+    this.foto2Tomada = false;
   }
 
 
@@ -185,7 +252,7 @@ export class HomePage {
 
   // 🔒 VALIDACIÓN
   get puedeGuardar(): boolean {
-    return !!(this.lat && this.lng && this.foto && this.fotoTomada);
+    return !!(this.lat && this.lng && this.foto && this.fotoTomada && this.foto2Tomada);
   }
 
 }

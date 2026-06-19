@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
 import { Router } from '@angular/router';
-import { IonContent, IonButton, IonInput, IonSpinner } from '@ionic/angular/standalone';
+import { IonContent, IonButton, IonInput, IonSpinner, IonItem, IonLabel, LoadingController } from '@ionic/angular/standalone';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { ConductoresService } from '../services/conductores.service';
@@ -10,7 +10,12 @@ import { ConductoresService } from '../services/conductores.service';
   templateUrl: './login.page.html',
   styleUrls: ['./login.page.scss'],
   standalone: true,
-  imports: [IonContent, IonButton, IonInput, IonSpinner, FormsModule, CommonModule],
+  imports: [IonContent,
+    IonButton,
+    IonInput,
+    IonSpinner,
+    FormsModule,
+    CommonModule],
 })
 export class LoginPage {
 
@@ -21,7 +26,7 @@ export class LoginPage {
   error = false;
 
 
-  constructor(private router: Router, private conductoresService: ConductoresService) { }
+  constructor(private router: Router, private conductoresService: ConductoresService, private loadingCtrl: LoadingController) { }
 
   ngAfterViewInit() {
     if ((window as any).tsParticles) {
@@ -49,17 +54,20 @@ export class LoginPage {
   }
 
   async login() {
-    this.loading = true;
+    const loading = await this.loadingCtrl.create({
+      message: 'Iniciando sesión... por favor espere',
+      spinner: 'crescent'
+    });
+    await loading.present();
     this.conductoresService.login(this.usuario, this.password).subscribe({
       next: (res: any) => {
-        localStorage.setItem('conductor', JSON.stringify(res)); // Guardamos ID y estado
-        this.router.navigateByUrl('/home');
-        this.loading = false;
+        loading.dismiss(); // <-- Quitar el cargador si sale bien
+        localStorage.setItem('conductor', JSON.stringify(res));
+        this.router.navigate(['/home']);
       },
       error: (err) => {
-        this.error = true;
-        this.loading = false;
-        alert('Error: ' + (err.error?.error || 'No se pudo conectar'));
+        loading.dismiss(); // <-- Quitar el cargador si sale mal
+        alert('Error: Usuario o contraseña incorrectos');
       }
     });
   }

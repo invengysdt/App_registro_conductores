@@ -1,8 +1,4 @@
-<ion-header class="ion-no-border">
-  <ion-toolbar color="primary">
-    <ion-title>Control de Ruta</ion-title>
-  </ion-toolbar>
-</ion-header>
+<app-header></app-header>
 
 <ion-content [fullscreen]="true" class="ion-padding">
 
@@ -36,8 +32,19 @@
 
       <img *ngIf="foto" [src]="foto" (click)="tomarFoto()"
         style="width: 100%; border-radius: 12px; height: 200px; object-fit: cover;" />
+      <img *ngIf="foto2" [src]="foto2" (click)="tomarFoto2()"
+        style="width: 100%; border-radius: 12px; height: 200px; object-fit: cover; margin-top: 10px;" />
     </ion-card-content>
   </ion-card>
+
+  <ion-button expand="block" (click)="tomarFoto()" [color]="fotoTomada ? 'success' : 'primary'">
+    <ion-icon name="camera-outline" slot="start"></ion-icon>
+    {{ fotoTomada ? 'Foto 1 Lista' : 'Tomar Foto 1' }}
+  </ion-button>
+  <ion-button expand="block" (click)="tomarFoto2()" [color]="foto2Tomada ? 'success' : 'primary'">
+    <ion-icon name="camera-outline" slot="start"></ion-icon>
+    {{ foto2Tomada ? 'Foto 2 Lista' : 'Tomar Foto 2' }}
+  </ion-button>
 
   <!-- BOTÓN DE ENVÍO -->
   <div class="ion-padding-top">

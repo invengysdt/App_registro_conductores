@@ -1,0 +1,33 @@
+<ion-header mode="md">
+  <ion-toolbar color="primary">
+    <ion-title>Control de Ruta</ion-title>
+
+    <ion-buttons slot="end">
+      <!-- Nombre del usuario (se oculta en pantallas muy pequeñas) -->
+      <ion-label class="user-name">{{ nombreUsuario }}</ion-label>
+
+      <!-- Círculo con iniciales -->
+      <div class="avatar-circle" id="click-trigger">
+        {{ iniciales }}
+      </div>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<!-- Menú Desplegable -->
+<ion-popover trigger="click-trigger" triggerAction="click">
+  <ng-template>
+    <ion-content>
+      <ion-list lines="none">
+        <ion-item button (click)="irAReporte()">
+          <ion-icon name="document-text-outline" slot="start"></ion-icon>
+          <ion-label>Reporte Ingreso</ion-label>
+        </ion-item>
+        <ion-item button (click)="logout()" color="danger">
+          <ion-icon name="log-out-outline" slot="start"></ion-icon>
+          <ion-label>Cerrar Sesión</ion-label>
+        </ion-item>
+      </ion-list>
+    </ion-content>
+  </ng-template>
+</ion-popover>
