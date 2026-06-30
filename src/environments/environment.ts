@@ -1,9 +1,9 @@
+//export const environment = {
+//  production: false,
+//  apiUrl: 'https://invengy-general-backend-sebastian.onrender.com/api'
+//};
+
 export const environment = {
   production: false,
-  apiUrl: 'https://invengy-general-backend-sebastian.onrender.com/api'
-};
-
-//xport const environment = {
-//  production: false,
-//    apiUrl: 'http://localhost:3000'
-//};              
+  apiUrl: 'http://192.168.0.163:3000/api'
+};              

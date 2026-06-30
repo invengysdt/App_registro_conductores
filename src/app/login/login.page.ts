@@ -67,7 +67,7 @@ export class LoginPage {
       },
       error: (err) => {
         loading.dismiss(); // <-- Quitar el cargador si sale mal
-        alert('Error: Usuario o contraseña incorrectos');
+        alert('Error: ' + (err.error?.error || 'Usuario o contraseña incorrectos'));
       }
     });
   }

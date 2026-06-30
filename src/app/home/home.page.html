@@ -58,4 +58,32 @@
 
   </div>
 
+  <!-- CONTENEDOR DE CÁMARA BIOMÉTRICA (Se muestra solo durante el reto) -->
+  <div *ngIf="mostrarCamaraBiometrica"
+    style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 20px;">
+
+    <h2 style="color: #00e5ff; font-weight: bold; text-align: center; margin-bottom: 5px;">VERIFICACIÓN BIOMÉTRICA</h2>
+    <p style="color: #fff; font-size: 18px; text-align: center; margin-bottom: 20px; font-weight: 500;">
+      Instrucción: <span style="color: #ffc107;">{{ instruccionReto }}</span>
+    </p>
+
+    <!-- Previsualización de la cámara en vivo -->
+    <div
+      style="width: 280px; height: 280px; border-radius: 50%; border: 4px solid #00e5ff; overflow: hidden; position: relative;">
+      <video id="webcamVideo" autoplay playsinline muted
+        style="width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1);"></video>
+    </div>
+
+    <!-- Cuenta regresiva / Progreso -->
+    <h1 style="color: #fff; font-size: 32px; margin-top: 20px; font-weight: bold;">{{ countdownBiometrico }}</h1>
+
+    <div style="width: 80%; background: #444; height: 10px; border-radius: 5px; overflow: hidden; margin-top: 10px;">
+      <div [style.width]="progresoLiveness + '%'"
+        style="background: #00e5ff; height: 100%; transition: width 0.1s linear;"></div>
+    </div>
+
+    <p style="color: #aaa; margin-top: 20px; text-align: center;">Por favor, realiza el movimiento solicitado frente a
+      la cámara.</p>
+  </div>
+
 </ion-content>
