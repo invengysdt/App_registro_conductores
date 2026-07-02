@@ -21,29 +21,23 @@
     </ion-card-content>
   </ion-card>
 
-  <!-- TARJETA DE EVIDENCIA FOTOGRÁFICA -->
+  <!-- TARJETA DE EVIDENCIA FOTOGRÁFICA (TACÓMETRO) -->
   <ion-card mode="ios">
     <ion-card-content>
-      <div *ngIf="!foto" (click)="tomarFoto()"
-        style="width: 100%; height: 150px; border: 2px dashed #ccc; border-radius: 12px; display: flex; flex-direction: column; justify-content: center; align-items: center; background: #f9f9f9;">
+      <div *ngIf="!foto2" (click)="tomarFoto2()"
+        style="width: 100%; height: 150px; border: 2px dashed #ccc; border-radius: 12px; display: flex; flex-direction: column; justify-content: center; align-items: center; background: #f9f9f9; cursor: pointer;">
         <ion-icon name="camera-outline" style="font-size: 40px; color: #999;"></ion-icon>
-        <p style="color: #999;">Tocar para tomar foto</p>
+        <p style="color: #999;">Tocar para tomar foto del tacómetro</p>
       </div>
 
-      <img *ngIf="foto" [src]="foto" (click)="tomarFoto()"
-        style="width: 100%; border-radius: 12px; height: 200px; object-fit: cover;" />
       <img *ngIf="foto2" [src]="foto2" (click)="tomarFoto2()"
-        style="width: 100%; border-radius: 12px; height: 200px; object-fit: cover; margin-top: 10px;" />
+        style="width: 100%; border-radius: 12px; height: 200px; object-fit: cover; cursor: pointer;" />
     </ion-card-content>
   </ion-card>
 
-  <ion-button expand="block" (click)="tomarFoto()" [color]="fotoTomada ? 'success' : 'primary'">
-    <ion-icon name="camera-outline" slot="start"></ion-icon>
-    {{ fotoTomada ? 'Foto 1 Lista' : 'Tomar Foto 1' }}
-  </ion-button>
   <ion-button expand="block" (click)="tomarFoto2()" [color]="foto2Tomada ? 'success' : 'primary'">
     <ion-icon name="camera-outline" slot="start"></ion-icon>
-    {{ foto2Tomada ? 'Foto 2 Lista' : 'Tomar Foto 2' }}
+    {{ foto2Tomada ? 'Foto del Tacómetro Lista' : 'Tomar Foto del Tacómetro' }}
   </ion-button>
 
   <!-- BOTÓN DE ENVÍO -->

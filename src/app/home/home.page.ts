@@ -42,12 +42,10 @@ export class HomePage {
 
   lat: number | null = null;
   lng: number | null = null;
-  foto: string | null = null;
   foto2: string | null = null;
   foto2Tomada = false;
   map: any;
   timeGps: number | null = null;
-  timeFoto: number | null = null;
   enRuta: boolean = false;
   idRegistroActual: number | null = null;
 
@@ -58,12 +56,6 @@ export class HomePage {
   countdownBiometrico = '';
   progresoLiveness = 0;
   streamVideo: MediaStream | null = null;
-
-
-
-
-  // 🔥 control estricto
-  fotoTomada = false;
 
   constructor(private conductoresService: ConductoresService, private loadingCtrl: LoadingController) {
     // REGISTRAMOS LOS ICONOS
@@ -96,7 +88,6 @@ export class HomePage {
       this.lat = position.coords.latitude;
       this.lng = position.coords.longitude;
       this.timeGps = Date.now();
-      this.timeFoto = null;
 
       // Inicializar o actualizar el mapa
       if (!this.map) {
@@ -117,10 +108,11 @@ export class HomePage {
   }
 
 
-  // 📸 FOTO SOLO CÁMARA
-  async tomarFoto() {
+  // No longer needed: tomarFoto() has been removed since biometric liveness captures face automatically.
+
+  async tomarFoto2() {
     if (!this.timeGps) {
-      alert('Primero debes obtener la ubicación');
+      alert('Primero debes obtener la ubicación GPS.');
       return;
     }
 
@@ -128,29 +120,13 @@ export class HomePage {
     const diferencia = (ahora - this.timeGps) / 1000; // Segundos transcurridos
 
     if (diferencia > 45) {
-      alert('Han pasado más de 45 segundos desde el GPS. Debes actualizar tu ubicación.');
+      alert('Han pasado más de 45 segundos desde que obtuviste el GPS. Debes actualizar tu ubicación.');
       this.lat = null;
       this.lng = null;
       this.timeGps = null;
       return;
     }
 
-    try {
-      const image = await Camera.getPhoto({
-        quality: 90,
-        allowEditing: false,
-        resultType: CameraResultType.DataUrl,
-        source: CameraSource.Camera
-      });
-      this.foto = image.dataUrl || null;
-      this.fotoTomada = true;
-      this.timeFoto = Date.now(); // Guardamos la hora de la foto
-    } catch (error) {
-      console.log('Usuario canceló');
-    }
-  }
-
-  async tomarFoto2() {
     try {
       const image = await Camera.getPhoto({
         quality: 90, // Calidad alta como pediste
@@ -161,15 +137,26 @@ export class HomePage {
       this.foto2 = image.dataUrl || null;
       this.foto2Tomada = true;
     } catch (error) {
-      console.log('Usuario canceló foto 2');
+      console.log('Usuario canceló foto del tacómetro');
     }
   }
 
 
   async enviarReporte() {
-    // 1. Validaciones básicas
-    if (!this.lat || !this.lng) {
+    // 1. Validaciones básicas y frescura del GPS (máximo 45 segundos)
+    if (!this.lat || !this.lng || !this.timeGps) {
       alert('Se requiere la ubicación GPS.');
+      return;
+    }
+
+    const ahora = Date.now();
+    const diferencia = (ahora - this.timeGps) / 1000;
+
+    if (diferencia > 45) {
+      alert('Han pasado más de 45 segundos desde que obtuviste el GPS. Por favor, actualiza tu ubicación antes de registrar tu ingreso/salida.');
+      this.lat = null;
+      this.lng = null;
+      this.timeGps = null;
       return;
     }
 
@@ -208,23 +195,29 @@ export class HomePage {
             if (videoEl) videoEl.srcObject = this.streamVideo;
           }, 200);
 
+          // Esperar 1 segundo para asegurar la inicialización inicial
           await new Promise(resolve => setTimeout(resolve, 1000));
-          const videoParaSelfie = document.getElementById('webcamVideo') as HTMLVideoElement;
-          const canvasSelfie = document.createElement('canvas');
-          canvasSelfie.width = 640;
-          canvasSelfie.height = 480;
-          const ctxSelfie = canvasSelfie.getContext('2d')!;
-          ctxSelfie.drawImage(videoParaSelfie, 0, 0, 640, 480);
-          const selfieBlob = await new Promise<Blob>(resolve => {
-            canvasSelfie.toBlob(b => resolve(b!), 'image/jpeg', 0.92);
-          });
 
-          // 5. Cuenta regresiva de 3 segundos para que el usuario se prepare
+          // 5. Cuenta regresiva de 3 segundos para que el usuario se prepare y mire al frente
           for (let i = 3; i >= 1; i--) {
             this.countdownBiometrico = i + '...';
             await new Promise(resolve => setTimeout(resolve, 1000));
           }
           this.countdownBiometrico = '¡YA!';
+
+          // Capturar la selfie de frente justo ahora (cámara madura y usuario mirando al frente)
+          const videoParaSelfie = document.getElementById('webcamVideo') as HTMLVideoElement;
+          const canvasSelfie = document.createElement('canvas');
+          canvasSelfie.width = 640;
+          canvasSelfie.height = 480;
+          const ctxSelfie = canvasSelfie.getContext('2d')!;
+          // Espejar el lienzo para consistencia con los frames del liveness
+          ctxSelfie.translate(640, 0);
+          ctxSelfie.scale(-1, 1);
+          ctxSelfie.drawImage(videoParaSelfie, 0, 0, 640, 480);
+          const selfieBlob = await new Promise<Blob>(resolve => {
+            canvasSelfie.toBlob(b => resolve(b!), 'image/jpeg', 0.92);
+          });
 
           // 6. Capturar la ráfaga de frames durante el reto
           const framesBlobs = await this.capturarFramesDeVideo(3000, 100); // Captura por 1.5s cada 80ms
@@ -278,7 +271,8 @@ export class HomePage {
               },
               error: (err) => {
                 sendingLoader.dismiss();
-                alert('Error biométrico: ' + (err.error?.detalles || err.error?.error || 'No coincide tu rostro.'));
+                const msgError = err.error?.detalles?.mensaje || err.error?.detalles || err.error?.error || 'No coincide tu rostro.';
+                alert('Error biométrico: ' + msgError);
               }
             });
           } else {
@@ -300,7 +294,8 @@ export class HomePage {
               },
               error: (err) => {
                 sendingLoader.dismiss();
-                alert('Error biométrico: ' + (err.error?.detalles || err.error?.error || 'No coincide tu rostro.'));
+                const msgError = err.error?.detalles?.mensaje || err.error?.detalles || err.error?.error || 'No coincide tu rostro.';
+                alert('Error biométrico: ' + msgError);
               }
             });
           }
@@ -331,8 +326,11 @@ export class HomePage {
 
     while (transcurrido < duracionMs) {
       if (video && ctx) {
-        // Dibujamos con efecto espejo desactivado (tal como lo espera Python)
-        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        // Dibujamos con efecto espejo ACTIVADO (tal como funciona en test_camera.html y lo espera Python)
+        ctx.save();
+        ctx.scale(-1, 1);
+        ctx.drawImage(video, -canvas.width, 0, canvas.width, canvas.height);
+        ctx.restore();
 
         const blob = await new Promise<Blob>((resolve) => {
           canvas.toBlob((b) => resolve(b!), 'image/jpeg', 0.80);
@@ -368,14 +366,11 @@ export class HomePage {
 
 
 
-  // Crea esta función auxiliar para no repetir código de limpieza
+  // Limpieza del formulario al completar registro
   resetearFormulario() {
     this.lat = null;
     this.lng = null;
-    this.foto = null;
     this.timeGps = null;
-    this.timeFoto = null;
-    this.fotoTomada = false;
     this.foto2 = null;
     this.foto2Tomada = false;
   }
@@ -405,42 +400,50 @@ export class HomePage {
 
   async abrirCamaraEnrolamientoInicial() {
     try {
-      alert('Registro facial inicial: Mira de frente a la cámara con buena luz. La foto se tomará automáticamente en 2 segundos.');
-
-      // Abrimos WebRTC — MISMO método que la verificación
-      const stream = await navigator.mediaDevices.getUserMedia({
+      // 1. Abrimos la cámara frontal en el WebView
+      this.streamVideo = await navigator.mediaDevices.getUserMedia({
         video: { facingMode: 'user', width: 640, height: 480 }
       });
 
-      // Video temporal oculto para capturar el frame
-      const videoEl = document.createElement('video');
-      videoEl.srcObject = stream;
-      videoEl.autoplay = true;
-      videoEl.muted = true;
-      videoEl.playsInline = true;
-      videoEl.style.cssText = 'position:fixed;top:-9999px;opacity:0;';
-      document.body.appendChild(videoEl);
+      // 2. Activamos el overlay circular reutilizando la misma vista de verificación
+      this.mostrarCamaraBiometrica = true;
+      this.instruccionReto = 'Mira de frente a la cámara con buena luz.';
+      this.progresoLiveness = 0;
 
-      // Esperamos 2 segundos para que la cámara se estabilice con luz correcta
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      // 3. Asignamos el stream al elemento <video>
+      setTimeout(() => {
+        const videoEl = document.getElementById('webcamVideo') as HTMLVideoElement;
+        if (videoEl) videoEl.srcObject = this.streamVideo;
+      }, 200);
 
-      // Capturamos el frame SIN espejo — igual que en verificación
+      // 4. Cuenta regresiva visual de 3 segundos
+      for (let i = 3; i >= 1; i--) {
+        this.countdownBiometrico = i + '...';
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      }
+      this.countdownBiometrico = '¡Listo!';
+
+      // 5. Capturamos el frame en el canvas
+      const videoParaCaptura = document.getElementById('webcamVideo') as HTMLVideoElement;
+      if (!videoParaCaptura) {
+        throw new Error('No se encontró el visor de la cámara.');
+      }
+
       const canvas = document.createElement('canvas');
       canvas.width = 640;
       canvas.height = 480;
       const ctx = canvas.getContext('2d')!;
-      ctx.drawImage(videoEl, 0, 0, 640, 480);
+      ctx.drawImage(videoParaCaptura, 0, 0, 640, 480);
 
-      // Detenemos la cámara y limpiamos el elemento
-      stream.getTracks().forEach(track => track.stop());
-      document.body.removeChild(videoEl);
+      // 6. Apagamos la cámara de inmediato y cerramos el visor
+      this.cerrarCamaraWeb();
 
-      // Convertimos a Blob JPEG con la misma calidad que verificación
+      // Convertimos el canvas a Blob JPEG de alta calidad
       const fotoBlob = await new Promise<Blob>(resolve => {
         canvas.toBlob(b => resolve(b!), 'image/jpeg', 0.92);
       });
 
-      // Enviamos al endpoint de enrolamiento
+      // 7. Mostramos el cargador de registro
       const loading = await this.loadingCtrl.create({
         message: 'Registrando rostro en la base de datos...',
         spinner: 'crescent'
@@ -465,13 +468,14 @@ export class HomePage {
           loading.dismiss();
           const msgError = err.error?.detalles?.mensaje || err.error?.error || err.error?.mensaje || err.message || 'Error de conexión';
           alert('Error en registro inicial: ' + msgError);
+          // Permitir reintentar
           this.abrirCamaraEnrolamientoInicial();
         }
       });
 
     } catch (error) {
       console.log('Error en enrolamiento:', error);
-      alert('Debes registrar tu rostro para poder utilizar la aplicación.');
+      alert('Debes registrar tu rostro para poder utilizar la aplicación. Reintentando...');
       this.abrirCamaraEnrolamientoInicial();
     }
   }
