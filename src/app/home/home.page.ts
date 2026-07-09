@@ -56,6 +56,7 @@ export class HomePage {
   countdownBiometrico = '';
   progresoLiveness = 0;
   streamVideo: MediaStream | null = null;
+  brilloOriginal: number = 1.0;
 
   constructor(private conductoresService: ConductoresService, private loadingCtrl: LoadingController) {
     // REGISTRAMOS LOS ICONOS
@@ -181,6 +182,16 @@ export class HomePage {
         loading.dismiss();
         this.retoActivo = resReto.reto;
         this.instruccionReto = resReto.instruccion;
+
+        try {
+          // Guardar brillo actual y forzar brillo máximo (1.0) para iluminar el rostro
+          const { ScreenBrightness } = await import('@capacitor-community/screen-brightness');
+          const { brightness } = await ScreenBrightness.getBrightness();
+          this.brilloOriginal = brightness;
+          await ScreenBrightness.setBrightness({ brightness: 1.0 });
+        } catch (e) {
+          console.warn('No se pudo establecer el brillo máximo:', e);
+        }
 
         // 4. Iniciar la webcam del WebView
         try {
@@ -347,13 +358,20 @@ export class HomePage {
   }
 
   // Apaga la cámara y esconde el overlay
-  cerrarCamaraWeb() {
+  async cerrarCamaraWeb() {
     this.mostrarCamaraBiometrica = false;
     this.countdownBiometrico = '';
     this.progresoLiveness = 0;
     if (this.streamVideo) {
       this.streamVideo.getTracks().forEach(track => track.stop());
       this.streamVideo = null;
+    }
+    try {
+      // Restaurar el brillo original del celular al cerrar
+      const { ScreenBrightness } = await import('@capacitor-community/screen-brightness');
+      await ScreenBrightness.setBrightness({ brightness: this.brilloOriginal });
+    } catch (e) {
+      console.warn('No se pudo restaurar el brillo:', e);
     }
   }
 
@@ -400,6 +418,16 @@ export class HomePage {
 
   async abrirCamaraEnrolamientoInicial() {
     try {
+      try {
+        // Guardar brillo actual y forzar brillo máximo (1.0) para el enrolamiento inicial
+        const { ScreenBrightness } = await import('@capacitor-community/screen-brightness');
+        const { brightness } = await ScreenBrightness.getBrightness();
+        this.brilloOriginal = brightness;
+        await ScreenBrightness.setBrightness({ brightness: 1.0 });
+      } catch (e) {
+        console.warn('No se pudo establecer el brillo máximo:', e);
+      }
+
       // 1. Abrimos la cámara frontal en el WebView
       this.streamVideo = await navigator.mediaDevices.getUserMedia({
         video: { facingMode: 'user', width: 640, height: 480 }

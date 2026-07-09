@@ -67,7 +67,8 @@ export class LoginPage {
       },
       error: (err) => {
         loading.dismiss(); // <-- Quitar el cargador si sale mal
-        alert('Error: ' + (err.error?.error || 'Usuario o contraseña incorrectos'));
+        const msgError = err.error?.error || err.error?.mensaje || err.message || 'Error de conexión';
+        alert('Error al iniciar sesión: ' + msgError);
       }
     });
   }
