@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
 import { addIcons } from 'ionicons';
-import { pinOutline, refreshOutline, cameraOutline, cloudUploadOutline, exitOutline } from 'ionicons/icons';
+import { pinOutline, refreshOutline, cameraOutline, cloudUploadOutline, exitOutline, closeCircleOutline, camera } from 'ionicons/icons';
 import { Geolocation } from '@capacitor/geolocation';
 import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
 import { ConductoresService } from '../services/conductores.service';
@@ -58,9 +58,13 @@ export class HomePage {
   streamVideo: MediaStream | null = null;
   brilloOriginal: number = 1.0;
 
+  // Propiedades para la cámara del tacómetro
+  mostrarCamaraTacometro = false;
+  streamTacometro: MediaStream | null = null;
+
   constructor(private conductoresService: ConductoresService, private loadingCtrl: LoadingController) {
     // REGISTRAMOS LOS ICONOS
-    addIcons({ pinOutline, refreshOutline, cameraOutline, cloudUploadOutline, exitOutline });
+    addIcons({ pinOutline, refreshOutline, cameraOutline, cloudUploadOutline, exitOutline, closeCircleOutline, camera });
   }
   // ESTO HACE QUE BUSQUE EL GPS APENAS ABRA LA APP
   async ngOnInit() {
@@ -128,18 +132,48 @@ export class HomePage {
       return;
     }
 
+    // Iniciar cámara trasera en vivo para el tacómetro
     try {
-      const image = await Camera.getPhoto({
-        quality: 90, // Calidad alta como pediste
-        allowEditing: false,
-        resultType: CameraResultType.DataUrl,
-        source: CameraSource.Camera
+      this.streamTacometro = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } }
       });
-      this.foto2 = image.dataUrl || null;
-      this.foto2Tomada = true;
+      this.mostrarCamaraTacometro = true;
+
+      setTimeout(() => {
+        const videoEl = document.getElementById('tacometroVideo') as HTMLVideoElement;
+        if (videoEl) videoEl.srcObject = this.streamTacometro;
+      }, 250);
+
     } catch (error) {
-      console.log('Usuario canceló foto del tacómetro');
+      alert('Error al acceder a la cámara trasera: ' + error);
     }
+  }
+
+  cerrarCamaraTacometro() {
+    this.mostrarCamaraTacometro = false;
+    if (this.streamTacometro) {
+      this.streamTacometro.getTracks().forEach(track => track.stop());
+      this.streamTacometro = null;
+    }
+  }
+
+  async capturarFotoTacometro() {
+    const video = document.getElementById('tacometroVideo') as HTMLVideoElement;
+    if (!video) return;
+
+    const canvas = document.createElement('canvas');
+    // Capturar a la resolución real del video para máxima definición en el OCR
+    canvas.width = video.videoWidth || 1280;
+    canvas.height = video.videoHeight || 720;
+    
+    const ctx = canvas.getContext('2d');
+    if (ctx) {
+      // Dibujar sin efecto espejo (cámara trasera)
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+      this.foto2 = canvas.toDataURL('image/jpeg', 0.90);
+      this.foto2Tomada = true;
+    }
+    this.cerrarCamaraTacometro();
   }
 
 

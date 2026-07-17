@@ -10,8 +10,16 @@ import { retry } from 'rxjs/operators';
 export class ConductoresService {
     constructor(private http: HttpClient) { }
 
+    private getHttpOptions() {
+        return {
+            headers: {
+                'ngrok-skip-browser-warning': 'true'
+            }
+        };
+    }
+
     login(usuario: string, contrasena: string) {
-        return this.http.post(`${environment.apiUrl}/conductores/login`, { usuario, contraseña: contrasena }).pipe(
+        return this.http.post(`${environment.apiUrl}/conductores/login`, { usuario, contraseña: contrasena }, this.getHttpOptions()).pipe(
             retry({
                 count: 2,
                 delay: (error, retryCount) => {
@@ -27,7 +35,7 @@ export class ConductoresService {
 
     // Solicita el reto biométrico al servidor de Node
     obtenerRetoLiveness(): Observable<any> {
-        return this.http.get(`${environment.apiUrl}/registro/solicitar-reto`).pipe(
+        return this.http.get(`${environment.apiUrl}/registro/solicitar-reto`, this.getHttpOptions()).pipe(
             retry({
                 count: 2,
                 delay: (error, retryCount) => {
@@ -43,7 +51,7 @@ export class ConductoresService {
 
     // Envía el FormData con las imágenes y los datos del viaje (Ingreso)
     registrarIngreso(formData: FormData) {
-        return this.http.post(`${environment.apiUrl}/registro/ingreso`, formData).pipe(
+        return this.http.post(`${environment.apiUrl}/registro/ingreso`, formData, this.getHttpOptions()).pipe(
             retry({
                 count: 2,
                 delay: (error, retryCount) => {
@@ -59,7 +67,7 @@ export class ConductoresService {
 
     // Envía el FormData con las imágenes y los datos del viaje (Salida)
     registrarSalida(formData: FormData) {
-        return this.http.post(`${environment.apiUrl}/registro/salida`, formData).pipe(
+        return this.http.post(`${environment.apiUrl}/registro/salida`, formData, this.getHttpOptions()).pipe(
             retry({
                 count: 2,
                 delay: (error, retryCount) => {
@@ -74,6 +82,6 @@ export class ConductoresService {
     }
 
     enrolarInicial(formData: FormData) {
-        return this.http.post(`${environment.apiUrl}/registro/enrolar-inicial`, formData);
+        return this.http.post(`${environment.apiUrl}/registro/enrolar-inicial`, formData, this.getHttpOptions());
     }
 }

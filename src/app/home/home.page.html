@@ -79,4 +79,44 @@
     <p style="color: #666666; margin-top: 20px; text-align: center;">Por favor, realiza el movimiento solicitado frente a la cámara.</p>
   </div>
 
+  <!-- CONTENEDOR DE CÁMARA DEL TACÓMETRO (Diseño con Recuadro de Enfoque Verde) -->
+  <div *ngIf="mostrarCamaraTacometro"
+    style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000000; z-index: 9999; display: flex; flex-direction: column; justify-content: space-between; align-items: center; padding: 20px;">
+
+    <!-- Encabezado con instrucciones -->
+    <div style="width: 100%; text-align: center; margin-top: 30px;">
+      <h2 style="color: #4caf50; font-weight: bold; margin: 0;">FOTO DEL TACÓMETRO</h2>
+      <p style="color: #ffffff; font-size: 16px; margin: 8px 0; font-weight: 500;">
+        Alinea el kilometraje dentro del recuadro verde
+      </p>
+    </div>
+
+    <!-- Visor de la cámara con el recorte oscuro perimetral -->
+    <div style="position: relative; width: 320px; height: 320px; border-radius: 16px; overflow: hidden; border: 2px solid #4caf50; box-shadow: 0 0 20px rgba(0,0,0,0.5);">
+      <!-- Stream del video en vivo (cámara trasera) -->
+      <video id="tacometroVideo" autoplay playsinline muted
+        style="width: 100%; height: 100%; object-fit: cover;"></video>
+      
+      <!-- Sombreado perimetral y Recuadro Verde Central de Enfoque -->
+      <!-- Ancho 260px, Alto 90px. El box-shadow oscuro cubre el resto del visor -->
+      <div
+        style="position: absolute; top: 50%; left: 50%; width: 260px; height: 90px; transform: translate(-50%, -50%); border: 3px dashed #4caf50; border-radius: 8px; box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.6), 0 0 15px rgba(76, 175, 80, 0.5); pointer-events: none;">
+      </div>
+    </div>
+
+    <!-- Controles inferiores: Capturar y Cancelar -->
+    <div style="width: 100%; display: flex; justify-content: space-around; align-items: center; margin-bottom: 40px; padding: 0 30px;">
+      <!-- Cancelar -->
+      <ion-button color="danger" fill="clear" (click)="cerrarCamaraTacometro()">
+        <ion-icon name="close-circle-outline" style="font-size: 45px;"></ion-icon>
+      </ion-button>
+      
+      <!-- Capturar -->
+      <ion-button color="success" (click)="capturarFotoTacometro()" 
+        style="--border-radius: 50%; width: 75px; height: 75px; --box-shadow: 0 4px 10px rgba(0,0,0,0.3);">
+        <ion-icon name="camera" style="font-size: 32px;"></ion-icon>
+      </ion-button>
+    </div>
+  </div>
+
 </ion-content>
